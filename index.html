@@ -1,1 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Projects — Tap Buttons</title>
+<style>
+  /* Safe, mobile-first layout optimized for iPhone 16 */
+  :root{
+    --bg:#0b1220;
+    --panel:#071029;
+    --card:#0f1724;
+    --accent:#ff3b30; /* red */
+    --ok:#10b981;     /* green */
+    --muted:#9aa6b2;
+    --glass: rgba(255,255,255,0.03);
+    --radius:14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#061126 0%, #07122a 100%);color:#e6f0fb;}
+  /* prevent horizontal overflow on mobile */
+  html,body,#app{width:100%;overflow-x:hidden;}
+  #app{min-height:100vh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 12px 18px 12px;box-sizing:border-box;}
+  header{position:sticky;top:0;backdrop-filter: blur(6px);background:linear-gradient(180deg, rgba(6,18,38,0.72), rgba(6,18,38,0.40));padding:12px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:12px;z-index:20}
+  .logo{width:44px;height:44;border-radius:10px;background:linear-gradient(135deg,#ff7ab6,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:18px}
+  .head-text{flex:1}
+  h1{font-size:16px;margin:0;padding:0}
+  p.sub{margin:0;color:var(--muted);font-size:13px}
+  .controls{display:flex;gap:8px;align-items:center}
+  .btn{background:var(--card);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;color:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  .btn.primary{background:linear-gradient(90deg,#7c3aed,#ff7ab6);border:none;color:white}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+  main{flex:1;overflow:auto; -webkit-overflow-scrolling:touch;}
+  .grid{display:flex;flex-direction:column;gap:10px;max-width:980px;margin:0 auto;padding-bottom:28px}
+  /* big tappable project buttons */
+  .project-btn{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 14px;
+    border-radius:14px;
+    min-height:64px;
+    box-shadow: 0 6px 18px rgba(3,6,14,0.6);
+    border:1px solid rgba(255,255,255,0.03);
+    font-weight:800;
+    font-size:16px;
+    cursor:pointer;
+    user-select:none;
+    transition:transform .08s ease,box-shadow .08s ease;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+  .project-btn:active{transform:translateY(1px) scale(.999); }
+  .project-btn .meta{font-weight:600;font-size:13px;color:rgba(255,255,255,0.85)}
+  .project-btn.red{background:linear-gradient(180deg, rgba(255,59,48,0.06), rgba(255,59,48,0.02));border-left:6px solid var(--accent);color:#ffdfe0}
+  .project-btn.green{background:linear-gradient(180deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02));border-left:6px solid var(--ok);color:#eafff3}
+  .project-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  /* Editor modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:none;align-items:flex-end;justify-content:center;padding:12px;z-index:50}
+  .modal{width:100%;max-width:720px;background:linear-gradient(180deg,#07122a,#08162b);border-radius:16px;padding:14px 14px 18px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 30px 60px rgba(2,6,23,0.6)}
+  .modal h2{margin:0 0 8px 0;font-size:16px}
+  .row{display:flex;gap:8px;align-items:center}
+  .field{margin-top:10px}
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+  input[type="text"], input[type="date"], textarea{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:14px}
+  textarea{min-height:84px;resize:vertical}
+  .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .small{font-size:12px;color:var(--muted)}
+  footer{padding:10px 8px 28px 8px;display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;bottom:0;background:linear-gradient(180deg, transparent, rgba(0,0,0,0.2));margin-top:8px}
+  .import-area{background:var(--card);border-radius:12px;padding:10px;border:1px solid rgba(255,255,255,0.03);display:flex;gap:8px;align-items:center}
+  .import-area textarea{background:transparent;border:none;min-height:36px;max-height:84px;overflow:auto;color:inherit}
+  .file-input{display:none}
+  .hint{color:var(--muted);font-size:12px}
+  @media(min-width:720px){
+    .grid{padding:8px 6px 60px}
+    header{border-radius:20px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">PR</div>
+    <div class="head-text">
+      <h1>Projects — Tap to edit</h1>
+      <p class="sub">Tap a red button to add due date & notes. Mark complete to turn green. Import list to create buttons quickly.</p>
+    </div>
+    <div class="controls">
+      <button class="btn ghost" id="importBtn">Import</button>
+      <button class="btn primary" id="newBtn">New</button>
+    </div>
+  </header>
 
+  <main role="main">
+    <div class="grid" id="projectsGrid" aria-live="polite">
+      <!-- Project buttons inserted here -->
+    </div>
+
+    <!-- Import area (paste list) -->
+    <div style="max-width:980px;margin:12px auto;">
+      <div class="import-area">
+        <div style="flex:1">
+          <div class="hint">Paste names (one per line) then click <strong>Load</strong> — or upload a CSV with a single column of project names.</div>
+          <textarea id="pasteArea" placeholder="Project name one per line"></textarea>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label class="btn" for="csvFile">Upload CSV</label>
+          <input id="csvFile" class="file-input" type="file" accept=".csv,text/csv" />
+          <button id="loadPaste" class="btn primary">Load</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="hint">Auto-saves locally on this device.</div>
+    <div style="display:flex;gap:8px">
+      <button id="resetBtn" class="btn ghost">Reset</button>
+      <button id="downloadBtn" class="btn">Export JSON</button>
+    </div>
+  </footer>
+</div>
+
+<!-- Modal editor -->
+<div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Edit Project</h2>
+    <div class="field">
+      <label>Project</label>
+      <input type="text" id="editTitle" />
+    </div>
+    <div class="field">
+      <label>Due date</label>
+      <input type="date" id="editDue" />
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="editNotes" placeholder="Add notes..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" id="cancelEdit">Cancel</button>
+      <button class="btn" id="markDone">Mark Complete</button>
+      <button class="btn primary" id="saveEdit">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Data model:
+  projects: [
+    { id, title, due (yyyy-mm-dd or ""), notes, done: bool }
+  ]
+  Stored in localStorage under key PROJECTS_V1
+*/
+
+const LS_KEY = "PROJECTS_V1_v1";
+let projects = [];
+
+// Utilities
+const uid = ()=>('p'+Math.random().toString(36).slice(2,9));
+const clamp = (s)=> (s||'').toString().trim();
+
+function loadFromStorage(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return [];
+    return JSON.parse(raw);
+  }catch(e){
+    console.error("load error", e);
+    return [];
+  }
+}
+function saveToStorage(){
+  localStorage.setItem(LS_KEY, JSON.stringify(projects));
+}
+
+// Create button element for project
+function makeProjectButton(proj){
+  const btn = document.createElement('button');
+  btn.className = 'project-btn ' + (proj.done? 'green':'red');
+  btn.setAttribute('data-id', proj.id);
+  btn.setAttribute('type','button');
+  btn.style.width = '100%';
+  btn.innerHTML = `<div class="project-title">${escapeHtml(proj.title)}</div>
+                   <div class="meta">${proj.due?('Due '+proj.due):''}</div>`;
+  btn.addEventListener('click', ()=> openEditor(proj.id));
+  return btn;
+}
+
+function renderAll(){
+  const grid = document.getElementById('projectsGrid');
+  grid.innerHTML='';
+  if(projects.length===0){
+    const p = document.createElement('div');
+    p.style.opacity=0.7;
+    p.style.padding='18px';
+    p.style.borderRadius='12px';
+    p.style.background='linear-gradient(180deg, rgba(255,255,255,0.01), transparent)';
+    p.className='small';
+    p.textContent = 'No projects yet — paste a list above or tap New to add one quickly.';
+    grid.appendChild(p);
+    return;
+  }
+  projects.forEach(pr=>{
+    const btn = makeProjectButton(pr);
+    grid.appendChild(btn);
+  });
+}
+
+// Modal editor
+let currentEditId = null;
+const modalBackdrop = document.getElementById('modalBackdrop');
+function openEditor(id){
+  const p = projects.find(x=>x.id===id);
+  if(!p) return;
+  currentEditId = id;
+  document.getElementById('modalTitle').textContent = 'Edit: ' + (p.title||'Project');
+  document.getElementById('editTitle').value = p.title||'';
+  document.getElementById('editDue').value = p.due||'';
+  document.getElementById('editNotes').value = p.notes||'';
+  // show
+  modalBackdrop.style.display = 'flex';
+  modalBackdrop.setAttribute('aria-hidden','false');
+  // adjust markDone button text & color
+  document.getElementById('markDone').textContent = p.done ? 'Mark Not Complete' : 'Mark Complete';
+}
+function closeEditor(){
+  currentEditId = null;
+  modalBackdrop.style.display = 'none';
+  modalBackdrop.setAttribute('aria-hidden','true');
+}
+
+// Save edit
+document.getElementById('saveEdit').addEventListener('click', ()=>{
+  if(!currentEditId) return;
+  const p = projects.find(x=>x.id===currentEditId);
+  if(!p) return;
+  p.title = clamp(document.getElementById('editTitle').value);
+  p.due = document.getElementById('editDue').value || '';
+  p.notes = clamp(document.getElementById('editNotes').value);
+  // if title became empty, delete
+  if(!p.title){
+    projects = projects.filter(x=>x.id!==p.id);
+  }
+  saveToStorage();
+  renderAll();
+  closeEditor();
+});
+
+// Cancel
+document.getElementById('cancelEdit').addEventListener('click', (e)=>{ e.preventDefault(); closeEditor(); });
+
+// Mark complete toggle
+document.getElementById('markDone').addEventListener('click', ()=>{
+  if(!currentEditId) return;
+  const p = projects.find(x=>x.id===currentEditId);
+  if(!p) return;
+  p.done = !p.done;
+  saveToStorage();
+  renderAll();
+  // update button label
+  document.getElementById('markDone').textContent = p.done ? 'Mark Not Complete' : 'Mark Complete';
+});
+
+// New button - quick add
+document.getElementById('newBtn').addEventListener('click', ()=>{
+  const title = prompt("New project name:");
+  if(!title) return;
+  const pr = { id: uid(), title: clamp(title), due:'', notes:'', done:false };
+  projects.unshift(pr);
+  saveToStorage();
+  renderAll();
+  // open editor immediately
+  openEditor(pr.id);
+});
+
+// Import paste list
+document.getElementById('loadPaste').addEventListener('click', ()=>{
+  const text = document.getElementById('pasteArea').value || '';
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  let added=0;
+  lines.forEach(name=>{
+    projects.unshift({ id: uid(), title: name, due:'', notes:'', done:false});
+    added++;
+  });
+  if(added){
+    saveToStorage();
+    renderAll();
+    document.getElementById('pasteArea').value='';
+    // scroll to top
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else {
+    alert('Paste one project name per line, then click Load.');
+  }
+});
+
+// CSV upload (single-column CSV)
+document.getElementById('csvFile').addEventListener('change', (ev)=>{
+  const f = ev.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const txt = e.target.result;
+    // split by newline, skip header if looks like "name"
+    const rows = txt.split(/\r?\n/).map(r=>r.trim()).filter(Boolean);
+    // If first row contains comma, take first column of each row
+    const names = rows.map(r=>{
+      if(r.indexOf(',')>-1){
+        return r.split(',')[0].replace(/^"|"$/g,'').trim();
+      }
+      return r;
+    }).filter(Boolean);
+    if(names.length===0){ alert('No project names found in CSV.'); return; }
+    names.forEach(n=> projects.unshift({ id: uid(), title: n, due:'', notes:'', done:false }));
+    saveToStorage();
+    renderAll();
+    ev.target.value = '';
+  };
+  reader.readAsText(f);
+});
+
+// Import button focuses paste area
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('pasteArea').focus();
+});
+
+// Reset button (confirm)
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Clear all projects from this device and start over?')) return;
+  projects = [];
+  saveToStorage();
+  renderAll();
+});
+
+// Export JSON
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(projects,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'projects.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+// Escape HTML for safe rendering
+function escapeHtml(s){
+  if(!s && s!==0) return '';
+  return String(s).replace(/[&<>"'`=\/]/g, function (c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[c];
+  });
+}
+
+// Click outside modal closes it
+modalBackdrop.addEventListener('click', (e)=>{
+  if(e.target === modalBackdrop) closeEditor();
+});
+
+// Prevent horizontal scrolling on small devices
+document.addEventListener('touchmove', function(e){
+  // allow vertical scroll only
+}, {passive:true});
+
+// initial load
+(function init(){
+  projects = loadFromStorage();
+  // If there are no projects and user uploaded a spreadsheet earlier,
+  // they can paste / upload CSV. But we leave initial list empty to avoid
+  // heavy data-entry. If you want me to pre-load items from your uploaded
+  // spreadsheet, paste them into the box and click Load — I'll convert them to buttons.
+  renderAll();
+})();
+</script>
+</body>
+</html>
